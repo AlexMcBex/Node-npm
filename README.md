@@ -1,6 +1,6 @@
 [![General Assembly Logo](https://camo.githubusercontent.com/1a91b05b8f4d44b5bbfb83abac2b0996d8e26c92/687474703a2f2f692e696d6775722e636f6d2f6b6538555354712e706e67)](https://generalassemb.ly/education/web-development-immersive)
 
-# Intro to Node and NPM
+# Intro to Node, NPM, and Promises
 
 Learn about server-side JavaScript with Node and NPM.
 
@@ -19,6 +19,8 @@ By the end of this, developers should be able to:
 - Import and export Node modules
 - Use npm to install and manage dependencies in projects and globally
 - Use Node to work with the file system
+- Explain the advantages of using promises over callbacks.
+- Rewrite node scripts using callbacks as scripts using promises.
 
 ## Preparation
 
@@ -39,7 +41,7 @@ If we're not writing JavaScript _for_ our browsers to run, then what exactly are
 we writing it for? You may have heard that Node is server-side JavaScript, but
 why and how are we concerned with servers as web developers?
 
-### Turn and Talk
+### Discuss
 
 Turn to your neighbor and discuss the following questions:
 
@@ -121,7 +123,7 @@ Node versus for a browser. It also means there is a lot of server specific
 functionality that will only work in Node. Try `console.log(this)` in Node and 
 in the browser.
 
-## Your First Node Application
+## Code Along: Your First Node Application
 
 We're going to explore working with Node and npm in a new directory.
 
@@ -177,7 +179,7 @@ medium-sized project:
 }
 ```
 
-### Aside: node_modules and .gitignore
+### Discussion: node_modules and .gitignore
 
 Let's say we want to work on someone else's project. We clone it down to our
 computer, and then open it up and start exploring the file structure. You've
@@ -279,7 +281,7 @@ console.log(randomBear);
 
 - In your own words, describe what we just did
 
-### process.argv
+### Discussion: process.argv
 
 We'll frequently need to pass some input into the scripts that we write with
 Node. Think about `code .` or `code text.txt`, for example. It's not written in Node,
@@ -300,7 +302,7 @@ Node comes with a module, called
 [fs](https://nodejs.org/dist/latest-v10.x/docs/api/fs.html), for working with
 the file system.
 
-### Write to a file
+### Code along: Write to a file
 
 Still inside your `index.js` with `variousBrownBears` we'll start by exploring how to create (i.e. write) files using Node. The method
 for doing so is part of the `fs` module and is called `writeFile`.
@@ -337,11 +339,11 @@ Let's break this down:
 
 Go ahead and run this file in your terminal by typing `node index.js`.
 
-#### Turn & Talk
+#### Discuss
 
 Turn and discuss what just happened with your neighbor.
 
-### Read From a File
+### Code along: Read From a File
 
 So, we've written some data to a file. How can we get the contents of it?
 
@@ -369,7 +371,7 @@ arguments:
 This is great and all, but can't we do more than hello world? Why yes, yes we
 can.
 
-### Parsing & Stringifying JSON
+### Code along: Parsing & Stringifying JSON
 
 Let's create a file called `heros.json` and copy and paste the following JSON.
 
@@ -415,12 +417,11 @@ Now we can take this and write it into a new file. Still inside our `fs.readFile
 
 ```js
 fs.writeFile('./newHeros.json', herosJson, (err) => {
-			/** another way to log the error message */
-			if (err) {
+	if (err) {
 		console.error(err)
 	}
-			console.log('done')
-		})
+	console.log('done')
+})
 ```
 
 Run the script again in your terminal, and check the results in `newHeros.json`.
@@ -429,8 +430,8 @@ This is great! But our results are not as pretty as our original JSON. Let's mak
 
 ```js
 // convert heroPojo into json, 2 specifies how many spaces to indent the object
-    // allows the JSON to be formatted with newlines
-    const heroJson = JSON.stringify(heroPojo, null, 2)
+// allows the JSON to be formatted with newlines
+const heroJson = JSON.stringify(heroPojo, null, 2)
 ```
 
 Now that we can read from a file and write to another file lets make this code reusable.
@@ -496,6 +497,171 @@ if (!inFile && !outFile) {
 } 
 ```
 
+## JavaScript Promises: Why Promises?
+
+Promises are an alternative to directly using callbacks. Promises allow us to write asynchronous code that looks like synchronous code. Promises create the illusion of returning values or throwing errors from within our callbacks. While promises do not replace callbacks--promises depend on callbacks--they provide a layer of abstraction between you and callbacks, enabling you to prevent callback hell.
+
+### Anatomy of a Promise
+
+![alt text](diagram1.png)
+
+### Role of a Promise
+
+A promise represents a value that will be available for use in the future, 
+but is not available now. Think of it like an IOU for the actual value. Once
+it **resolves**, it will pass the value it's standing in for to a function you
+provide for it to invoke. Like an IOU, it can also "bounce", or **reject**, and 
+fail to provide the value it's standing in for. Promises also provide a way to 
+deal with this possibility.
+
+### `Promise.then` and `Promise.catch`
+
+These two methods on every `Promise` object are the primary means of interacting
+with them. This section covers what they have in common.
+
+They can be used the same way. Each takes one argument, a function. Here is a
+usage example featuring an arbitrary promise, `somePromise`:
+
+```js
+somePromise.then(function(resolutionValue) {
+    console.log("somePromise resolved with value " + resolutionValue);
+    doSomethingWith(resolutionValue);
+});
+```
+```js
+somePromise.catch(function(rejectionValue) {
+    console.error(rejectionValue instanceof Error ?
+        rejectionValue :
+        "somePromise rejected with value " + rejectionValue);
+});
+```
+
+#### `.then`
+
+`then` is a method on every `Promise` object. It is used to register an event
+handler for the promise's "resolve" event. When the promise resolves, the handler
+is invoked and passed the value the promise resolved to as its argument.
+
+#### `.catch`
+
+`catch` is a method on every `Promise` object. It is used to register an event
+handler for the promise's "reject" event. When the promise rejects, the handler
+is invoked and passed the value (usually an `Error` object) the promised rejected
+with as its argument.
+
+### Code along: Convert `readAndWriteJSON` to use a promises
+
+Inside of the `hello-node` directory lets take another look at `index.js`. We have a function `readAndWriteJSON` that is currently using only using callbacks. Let convert this over to use promises.
+
+Lets make a two new functions bellow the `readAndWriteJSON` and have them both return a `new Promise`
+
+```js
+const readAndWriteJSON = (inFile, outFile) => {
+  // ...
+}
+
+const readFile = () => {
+  return new Promise((resolve, reject) => {
+    
+})
+}
+
+const writeFile = () => {
+  return new Promise((resolve, reject) => {
+    
+})
+}
+```
+
+Notice that we are returning the `new Promise` on the same line that we declare it. This will make use able to `.then()` and `.catch()` methods once we call these functions.
+
+Now that we have our functions declared we can now `resolve` or `reject` our data. Lets do that.
+
+```js
+const readFile = (inFile) => {
+	return new Promise((resolve, reject) => {
+		fs.readFile(inFile, 'utf8', (error, fileData) => {
+			if (error) {
+				reject(error)
+			}
+
+			resolve(fileData)
+		})
+	})
+}
+
+const writeFile = (outFile, json) => {
+	return new Promise((resolve, reject) => {
+		fs.writeFile(outFile, json, (error) => {
+			if (error) {
+				reject(error)
+			}
+
+			resolve(json)
+		})
+	})
+}
+```
+
+1. `readFile` we declare the parameter `inFile`, and in `writeFile` we declare `outFile` and `json` just like we did when we were using callback.
+2. In both of these promise functions we `reject` if an error occurs. This sends the error to our `.catch()`
+3. In both we also `resolve` either the `fileData` or `json` which sends that information onto the next `.then()` in the promise chain. 
+   
+But oh no!! We are missing the code that parses our JSON to a pojo and then back to JSON. Lets create a helper function that contains that code. 
+
+```js
+const parseJson = (json) => {
+  const heroPojo = JSON.parse(json)
+  const herosJson = JSON.stringify(heroPojo, null, 2)
+	
+  return herosJson
+}
+```
+
+Be sure to return here! We don't want to break the promise chain and no longer have access to our data in our `writeFile` function. 
+
+Now lets export these new functions so we can use them over in `run-read-and-write.js`
+
+```js
+module.exports = {
+  readFile,
+  writeFile,
+  parseJson
+}
+```
+
+Head over to `run-read-and-write.js` and lets make a promise chain. Comment out our original line of `readAndWriteJSON(inFile, outFile)` and under that write:
+
+```js
+readAndWriteJSON.readFile(inFile)
+  .then(readAndWriteJSON.parseJson)
+  .then(json => {
+    readAndWriteJSON.writeFile(outFile, json)
+  })
+  .then(() => console.log('copied!'))
+  .catch(err => console.error(err))
+```
+
+1. We start the chain by calling our `readFile` function. This returns a promise so now we can add our `.then()s` and `.catch()` methods.
+2. In our first `.then()` we call our helper function `parseJson`. What is happening here? If our `readFile` function was able to `resolve` the data it will return that files contents. That is being passed to the `parseJson` function.
+3. In our next `.then()` we kick off another promise! Here since we want to pass our `writeFile` function multiple arguments we can declare the return value that came from our last `.then()` as a parameter in an anonymous arrow function. Now that it is declared we can call our `writeFile` function and pass it the `outFile` and `json` that we need.
+4. Our last `.then()` is just there to let us know that we were successful in the copy.
+5. Last but not least we have our `.catch()`. Even though there is two promises in this chain we just need the one `.catch()`. If an error does occur in either it will fall through to this one `.catch()`
+
+### Lab: Promisify callbacks
+
+#### Promisify hey-yall.js
+
+Inside `lib/hey-yall.js` there is a function that intakes an in file and console logs the contents of `data/names.txt` with `Hey` at the beginning. To run this file you need use the entry point in `bin/hey-yall.js`. This is already working code. To run please use:
+
+```sh
+node bin/hey-yall.js data/names.txt 
+```
+
+Goals:
+1. Read through both files and comment in your words what each line does.
+2. Modify the code to use promises.
+
 ## Additional Resources
 
 - [Node.js Documentation](https://nodejs.org/en/)
@@ -507,4 +673,3 @@ if (!inFile && !outFile) {
 1. All content is licensed under a CC­BY­NC­SA 4.0 license.
 1. All software code is licensed under GNU GPLv3. For commercial use or
    alternative licensing, please contact legal@ga.co.
-# node-npm
